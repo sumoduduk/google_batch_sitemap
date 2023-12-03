@@ -5,16 +5,17 @@ use std::env::args;
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
-    let oauth = oauth::get_token("./secret.json").await.unwrap();
-    let token = oauth.token().unwrap();
     let arg = args().collect::<Vec<String>>();
 
-    let sitemap_url = arg.get(1).expect("must provide sitemap_url in argument 1");
+    let sitemap_url = arg
+        .get(1)
+        .expect("Error : must provide sitemap_url in argument 1");
 
-    // let days = arg
-    //     .get(2)
-    //     .and_then(|num| num.parse::<i64>().ok())
-    //     .unwrap_or(2);
+    let path_json = arg
+        .get(2)
+        .expect("Error : must proovide google secret json in argument 2 ");
+    let oauth = oauth::get_token(&path_json).await.unwrap();
+    let token = oauth.token().unwrap();
 
     let uri_contain_xml = sitemap_url
         .contains(".xml")
