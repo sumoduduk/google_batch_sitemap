@@ -60,6 +60,32 @@ mod tests {
     use super::*;
 
     #[test]
+    fn it_shouldt_get_all_urls() -> eyre::Result<()> {
+        let text = std::fs::read_to_string("example.xml").unwrap();
+
+        let doc = Document::parse_with_options(
+            &text,
+            ParsingOptions {
+                allow_dtd: true,
+                ..ParsingOptions::default()
+            },
+        )?;
+
+        let arr_uris: Vec<String> = doc
+            .root()
+            .descendants()
+            .filter(|node| node.has_tag_name("loc"))
+            .filter_map(|node| {
+                let url = node.text().map(|s| s.trim().to_string());
+                url
+            })
+            .collect();
+        dbg!(arr_uris);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_two_days_ago() {
         let two_days_ago = (Utc::now() - Duration::days(2)).to_rfc3339();
         assert_eq!(filter_days(&two_days_ago, 2).unwrap(), true);
