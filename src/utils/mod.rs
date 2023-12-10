@@ -60,8 +60,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_shouldt_get_all_urls() -> eyre::Result<()> {
-        let text = std::fs::read_to_string("example.xml").unwrap();
+    fn it_should_get_all_urls() -> eyre::Result<()> {
+        let file_xml = "example.xml";
+
+        let text = std::fs::read_to_string(file_xml).unwrap();
 
         let doc = Document::parse_with_options(
             &text,
@@ -71,7 +73,7 @@ mod tests {
             },
         )?;
 
-        let arr_uris: Vec<String> = doc
+        let arr_urls: Vec<String> = doc
             .root()
             .descendants()
             .filter(|node| node.has_tag_name("loc"))
@@ -80,7 +82,49 @@ mod tests {
                 url
             })
             .collect();
-        dbg!(arr_uris);
+
+        dbg!(&arr_urls);
+
+        let arr = {
+            let text = std::fs::read_to_string(file_xml).unwrap();
+
+            let doc = Document::parse_with_options(
+                &text,
+                ParsingOptions {
+                    allow_dtd: true,
+                    ..ParsingOptions::default()
+                },
+            )?;
+
+            let mut arr_uris: Vec<String> = Vec::new();
+
+            for node in doc.root().descendants() {
+                let mut uri = "";
+
+                if node.has_tag_name("url") {
+                    for child in node.children() {
+                        match child.tag_name().name() {
+                            "loc" => {
+                                uri = child.text().ok_or_else(|| eyre!("loc is none"))?.trim();
+                            }
+                            _ => (),
+                        }
+                    }
+                } else {
+                    continue;
+                }
+
+                if !uri.is_empty() {
+                    arr_uris.push(uri.to_string());
+                }
+            }
+
+            arr_uris
+        };
+
+        dbg!(&arr);
+
+        assert_eq!(arr, arr_urls);
 
         Ok(())
     }

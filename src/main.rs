@@ -1,3 +1,4 @@
+mod db;
 mod oauth;
 mod utils;
 
